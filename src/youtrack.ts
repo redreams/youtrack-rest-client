@@ -1,5 +1,5 @@
 import {
-    YoutrackTokenOptions
+    YoutrackOptions
 } from "./options/youtrack_options";
 import * as request from "request-promise";
 import { RequestPromise } from "request-promise";
@@ -11,16 +11,18 @@ import { AgileEndpoint } from "./endpoints/agile";
 import { SprintEndpoint } from "./endpoints/sprint";
 import { WorkItemEndpoint } from "./endpoints/workitem";
 import { CommentEndpoint } from "./endpoints/comment";
+import {HttpTransport, HttpTransportOptions} from "./transports/httpTransport";
+import {RequestPromiseTransport} from "./transports/requestPromiseTransport";
 
 export interface YoutrackClient {
 
-    get(url: string, params?: {}, headers?: {}): RequestPromise;
+    get<T>(url: string, params?: {}, headers?: {}): Promise<T>;
 
-    post(url: string, params?: {}, headers?: {}): RequestPromise;
+    post<T>(url: string, params?: {}, headers?: {}): Promise<T>;
 
-    delete(url: string, params?: {}, headers?: {}): RequestPromise;
+    delete<T>(url: string, params?: {}, headers?: {}): Promise<T>;
 
-    put(url: string, params?: {}, headers?: {}): RequestPromise;
+    put<T>(url: string, params?: {}, headers?: {}): Promise<T>;
 
     readonly users: UserEndpoint;
     readonly tags: TagEndpoint;
@@ -32,14 +34,14 @@ export interface YoutrackClient {
     readonly comments: CommentEndpoint;
 }
 
-interface RequestOptions {
+interface RequestHeaders {
     [key: string]: any;
 }
 
 export class Youtrack implements YoutrackClient {
 
     private readonly baseUrl: string;
-    private defaultRequestOptions: RequestOptions = { jar: true, json: true };
+    private defaultRequestHeaders: RequestHeaders;
     public readonly users: UserEndpoint;
     public readonly tags: TagEndpoint;
     public readonly issues: IssueEndpoint;
@@ -48,14 +50,13 @@ export class Youtrack implements YoutrackClient {
     public readonly sprints: SprintEndpoint;
     public readonly workItems: WorkItemEndpoint;
     public readonly comments: CommentEndpoint;
+    private transport: HttpTransport;
 
-    public constructor(options: YoutrackTokenOptions) {
-        this.defaultRequestOptions = {
-            ...this.defaultRequestOptions,
-            headers: {
-                Authorization: `Bearer ${options.token}`
-            }
+    public constructor(options: YoutrackOptions) {
+        this.defaultRequestHeaders = {
+            Authorization: `Bearer ${options.token}`
         };
+        this.transport = options.transport ? options.transport : new RequestPromiseTransport();
         this.baseUrl = this.formBaseUrl(options.baseUrl);
         this.users = new UserEndpoint(this);
         this.tags = new TagEndpoint(this);
@@ -67,20 +68,20 @@ export class Youtrack implements YoutrackClient {
         this.comments = new CommentEndpoint(this);
     }
 
-    public post(url: string, params = {}, headers: {} = {}): RequestPromise {
-        return request.post(this.baseUrl + url, this.prepareParams(params, headers));
+    public post<T>(url: string, options: HttpTransportOptions = {}): Promise<T> {
+        return this.transport.post<T>(this.baseUrl + url, this.prepareParams(options));
     }
 
-    public get(url: string, params = {}, headers = {}): RequestPromise {
-        return request.get(this.baseUrl + url, this.prepareParams(params, headers));
+    public get<T>(url: string, options: HttpTransportOptions = {}): Promise<T> {
+        return this.transport.get<T>(this.baseUrl + url, this.prepareParams(options));
     }
 
-    public delete(url: string, params = {}, headers = {}): RequestPromise {
-        return request.delete(this.baseUrl + url, this.prepareParams(params, headers));
+    public delete<T>(url: string, options: HttpTransportOptions = {}): Promise<T> {
+        return this.transport.delete<T>(this.baseUrl + url, this.prepareParams(options));
     }
 
-    public put(url: string, params = {}, headers = {}): RequestPromise {
-        return request.put(this.baseUrl + url, this.prepareParams(params, headers));
+    public put<T>(url: string, options: HttpTransportOptions = {}): Promise<T> {
+        return this.transport.put<T>(this.baseUrl + url, this.prepareParams(options));
     }
 
     private formBaseUrl(baseUrl: string): string {
@@ -93,15 +94,19 @@ export class Youtrack implements YoutrackClient {
         return baseUrl;
     }
 
-    private prepareParams(params: {}, customHeaders: {}): {} {
-        if ('headers' in this.defaultRequestOptions && Object.keys(customHeaders).length > 0) {
-            // merge the header parameters
-            const { headers, ...defaultOptions } = this.defaultRequestOptions;
-            return { ...defaultOptions, ...params, headers: { ...headers, ...customHeaders } };
+    private prepareParams(options: HttpTransportOptions): {} {
+        if ('headers' in options) {
+            return {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    ...this.defaultRequestHeaders
+                }
+            };
         }
-        if ('headers' in this.defaultRequestOptions) {
-            return { ...this.defaultRequestOptions, ...params }
-        }
-        return { ...this.defaultRequestOptions, ...params, headers: { ...customHeaders } }
+        return {
+            ...options,
+            headers: this.defaultRequestHeaders
+        };
     }
 }

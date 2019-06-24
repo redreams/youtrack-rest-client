@@ -1,6 +1,5 @@
 import { BaseEndpoint } from "./base";
-import { Issue, IssueImpl, ReducedIssue, ReducedIssueImpl, NewIssue } from "..";
-import { UpdateIssue } from "../entities/issue";
+import {Issue, IssueImpl, NewIssue, ReducedIssue, ReducedIssueImpl, UpdateIssue} from "../entities/issue";
 import { Command, CommandList, CommandListImpl } from "../entities/command";
 import { PaginationOptions } from "../options/pagination_options";
 
@@ -21,7 +20,7 @@ export class IssueEndpoint extends BaseEndpoint {
 
     public search(query: string, paginationOptions: PaginationOptions = {}): Promise<ReducedIssue[]> {
         return this.getResourceWithFields<ReducedIssue[]>(IssuePaths.issues, ReducedIssueImpl, {
-            qs: {
+            params: {
                 query,
                 ...paginationOptions
             }
@@ -29,7 +28,7 @@ export class IssueEndpoint extends BaseEndpoint {
     }
 
     public delete(issueId: string): Promise<any> {
-        return this.toPromise(this.client.delete(this.format(IssuePaths.issue, { issueId })));
+        return this.client.delete(this.format(IssuePaths.issue, { issueId }));
     }
 
     public create(issue: NewIssue): Promise<Issue> {

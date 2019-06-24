@@ -1,7 +1,7 @@
 import { YoutrackClient } from "../youtrack";
 import * as format from "string-template";
-import { RequestPromise } from "request-promise";
 import { generateFieldsQuery, GenericObject } from "../entities/fields/utils";
+import {HttpTransportOptions} from "../transports/httpTransport";
 
 export class BaseEndpoint {
     public constructor(protected client: YoutrackClient) {
@@ -11,41 +11,32 @@ export class BaseEndpoint {
         return format(template, values);
     }
 
-    protected toPromise<T>(request: RequestPromise): Promise<T> {
-        return Promise.resolve(request.then(response => {
-            return response;
-        }).catch(error => {
-            return Promise.reject(error);
-        }));
+    protected getResource<T>(url: string, options: HttpTransportOptions = {}): Promise<T> {
+        return this.client.get<T>(url, options);
     }
 
-    protected getResource<T>(url: string, params = {}): Promise<T> {
-        return this.toPromise<T>(this.client.get(url, params));
+    protected postResource<T>(url: string, options: HttpTransportOptions = {}): Promise<T> {
+        return this.client.post<T>(url, options);
     }
 
-    protected postResource<T>(url: string, params = {}): Promise<T> {
-        return this.toPromise<T>(this.client.post(url, params));
-    }
-
-    protected getResourceWithFields<T>(url: string, implementation: new () => object, options: { qs?: GenericObject } = {}): Promise<T> {
+    protected getResourceWithFields<T>(url: string, implementation: new () => object, options: { params?: GenericObject } = {}): Promise<T> {
         return this.getResource(url, {
-            qs: {
+            params: {
                 fields: generateFieldsQuery(new implementation()),
-                ...(options.qs || {})
+                ...(options.params || {})
             }
         })
     }
 
     protected postResourceWithFields<T>(url: string, implementation: new () => object, options: {
-        qs?: GenericObject,
-        body?: any,
-        form?: any
+        params?: GenericObject,
+        body?: any
     } = {}): Promise<T> {
         return this.postResource(url, {
             ...options,
-            qs: {
+            params: {
                 fields: generateFieldsQuery(new implementation()),
-                ...(options.qs || {})
+                ...(options.params || {})
             }
         })
     }

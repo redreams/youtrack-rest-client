@@ -1,7 +1,7 @@
+import {HttpTransport} from "../transports/httpTransport";
+
 export interface YoutrackOptions {
     baseUrl: string;
-}
-
-export interface YoutrackTokenOptions extends YoutrackOptions {
     token: string;
+    transport?: HttpTransport
 }

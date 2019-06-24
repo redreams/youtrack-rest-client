@@ -1,6 +1,6 @@
-import { BaseEndpoint } from "./base";
-import { ReducedAgileImpl, Agile, AgileImpl, ReducedAgile, NewAgile, UpdateAgile } from "..";
-import { PaginationOptions } from "../options/pagination_options";
+import {Agile, AgileImpl, NewAgile, ReducedAgile, ReducedAgileImpl, UpdateAgile} from "../entities/agile";
+import {BaseEndpoint} from "./base";
+import {PaginationOptions} from "../options/pagination_options";
 
 export const AgilePaths = {
     agiles: '/agiles',
@@ -10,7 +10,7 @@ export const AgilePaths = {
 export class AgileEndpoint extends BaseEndpoint {
 
     public all(paginationOptions: PaginationOptions = {}): Promise<ReducedAgile[]> {
-        return this.getResourceWithFields<ReducedAgile[]>(AgilePaths.agiles, ReducedAgileImpl, { qs: paginationOptions });
+        return this.getResourceWithFields<ReducedAgile[]>(AgilePaths.agiles, ReducedAgileImpl, { params: paginationOptions });
     }
 
     public byId(agileId: string): Promise<Agile> {
@@ -18,7 +18,7 @@ export class AgileEndpoint extends BaseEndpoint {
     }
 
     public delete(agileId: string): Promise<any> {
-        return this.toPromise(this.client.delete(this.format(AgilePaths.agile, { agileId })));
+        return this.client.delete(this.format(AgilePaths.agile, { agileId }));
     }
 
     public create(agile: NewAgile): Promise<Agile> {

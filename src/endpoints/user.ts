@@ -1,6 +1,6 @@
 import { BaseEndpoint } from "./base";
-import { ReducedUserImpl, ReducedUser, User, UserImpl } from "..";
 import { PaginationOptions } from "../options/pagination_options";
+import {ReducedUser, ReducedUserImpl, User, UserImpl} from "../entities/user";
 
 export const UserPaths = {
     current: '/admin/users/me',
@@ -15,7 +15,7 @@ export class UserEndpoint extends BaseEndpoint {
     }
 
     public all(paginationOptions: PaginationOptions = {}): Promise<ReducedUser[]> {
-        return this.getResourceWithFields<ReducedUser[]>(UserPaths.users, ReducedUserImpl, { qs: paginationOptions });
+        return this.getResourceWithFields<ReducedUser[]>(UserPaths.users, ReducedUserImpl, { params: paginationOptions });
     }
 
     public byId(userId: string): Promise<User> {

@@ -57,7 +57,7 @@ describe("Youtrack", () => {
                     const youtrack = new Youtrack(configWithToken);
                     let mockRequest = sinon.mock(request);
                     let expectation = mockRequest.expects("post").returns(Promise.resolve(null));
-                    youtrack.post("/some/resource", {body: "<example>test</example>"}, {'Content-Type': 'application/xml'});
+                    youtrack.post("/some/resource", {body: "<example>test</example>", headers: {'Content-Type': 'application/xml'}});
                     assert(expectation.calledOnce);
 
                     const [[path, payload]] = expectation.args;

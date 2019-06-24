@@ -1,6 +1,6 @@
 import { BaseEndpoint } from "./base";
-import { WorkItem, WorkItemImpl } from "..";
 import { PaginationOptions } from "../options/pagination_options";
+import {WorkItem, WorkItemImpl} from "../entities/workItem";
 
 export const WorkItemPaths = {
     workitems: '/issues/{issueId}/timeTracking/workItems',
@@ -10,7 +10,7 @@ export const WorkItemPaths = {
 export class WorkItemEndpoint extends BaseEndpoint {
 
     public all(issueId: string, paginationOptions: PaginationOptions = {}): Promise<WorkItem[]> {
-        return this.getResourceWithFields<WorkItem[]>(this.format(WorkItemPaths.workitems, { issueId }), WorkItemImpl, { qs: paginationOptions });
+        return this.getResourceWithFields<WorkItem[]>(this.format(WorkItemPaths.workitems, { issueId }), WorkItemImpl, { params: paginationOptions });
     }
 
     public create(issueId: string, workItem: WorkItem): Promise<WorkItem> {
@@ -28,8 +28,8 @@ export class WorkItemEndpoint extends BaseEndpoint {
     }
 
     public delete(issueId: string, workItemId: string): Promise<any> {
-        return this.toPromise(this.client.delete(this.format(WorkItemPaths.workitem, {
+        return this.client.delete(this.format(WorkItemPaths.workitem, {
             issueId, workItemId
-        })));
+        }));
     }
 }
