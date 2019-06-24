@@ -1,28 +1,17 @@
-import {
-    YoutrackOptions
-} from "./options/youtrack_options";
-import * as request from "request-promise";
-import { RequestPromise } from "request-promise";
-import { UserEndpoint } from "./endpoints/user";
-import { TagEndpoint } from "./endpoints/tag";
-import { IssueEndpoint } from "./endpoints/issue";
-import { ProjectEndpoint } from "./endpoints/project";
-import { AgileEndpoint } from "./endpoints/agile";
-import { SprintEndpoint } from "./endpoints/sprint";
-import { WorkItemEndpoint } from "./endpoints/workitem";
-import { CommentEndpoint } from "./endpoints/comment";
+import {YoutrackOptions} from "./options/youtrack_options";
+import {UserEndpoint} from "./endpoints/user";
+import {TagEndpoint} from "./endpoints/tag";
+import {IssueEndpoint} from "./endpoints/issue";
+import {ProjectEndpoint} from "./endpoints/project";
+import {AgileEndpoint} from "./endpoints/agile";
+import {SprintEndpoint} from "./endpoints/sprint";
+import {WorkItemEndpoint} from "./endpoints/workitem";
+import {CommentEndpoint} from "./endpoints/comment";
 import {HttpTransport, HttpTransportOptions} from "./transports/httpTransport";
 import {RequestPromiseTransport} from "./transports/requestPromiseTransport";
+import {TimeTrackingSettingsEndpoint} from "./endpoints/timeTrackingSettings";
 
 export interface YoutrackClient {
-
-    get<T>(url: string, params?: {}, headers?: {}): Promise<T>;
-
-    post<T>(url: string, params?: {}, headers?: {}): Promise<T>;
-
-    delete<T>(url: string, params?: {}, headers?: {}): Promise<T>;
-
-    put<T>(url: string, params?: {}, headers?: {}): Promise<T>;
 
     readonly users: UserEndpoint;
     readonly tags: TagEndpoint;
@@ -32,6 +21,14 @@ export interface YoutrackClient {
     readonly sprints: SprintEndpoint;
     readonly workItems: WorkItemEndpoint;
     readonly comments: CommentEndpoint;
+
+    get<T>(url: string, params?: {}, headers?: {}): Promise<T>;
+
+    post<T>(url: string, params?: {}, headers?: {}): Promise<T>;
+
+    delete<T>(url: string, params?: {}, headers?: {}): Promise<T>;
+
+    put<T>(url: string, params?: {}, headers?: {}): Promise<T>;
 }
 
 interface RequestHeaders {
@@ -40,8 +37,6 @@ interface RequestHeaders {
 
 export class Youtrack implements YoutrackClient {
 
-    private readonly baseUrl: string;
-    private defaultRequestHeaders: RequestHeaders;
     public readonly users: UserEndpoint;
     public readonly tags: TagEndpoint;
     public readonly issues: IssueEndpoint;
@@ -50,6 +45,9 @@ export class Youtrack implements YoutrackClient {
     public readonly sprints: SprintEndpoint;
     public readonly workItems: WorkItemEndpoint;
     public readonly comments: CommentEndpoint;
+    public readonly timeTrackingSettings: TimeTrackingSettingsEndpoint;
+    private readonly baseUrl: string;
+    private defaultRequestHeaders: RequestHeaders;
     private transport: HttpTransport;
 
     public constructor(options: YoutrackOptions) {
@@ -66,6 +64,7 @@ export class Youtrack implements YoutrackClient {
         this.sprints = new SprintEndpoint(this);
         this.workItems = new WorkItemEndpoint(this);
         this.comments = new CommentEndpoint(this);
+        this.timeTrackingSettings = new TimeTrackingSettingsEndpoint(this);
     }
 
     public post<T>(url: string, options: HttpTransportOptions = {}): Promise<T> {
